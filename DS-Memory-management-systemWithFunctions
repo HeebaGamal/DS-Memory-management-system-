@@ -1,0 +1,690 @@
+
+#include <iostream>
+#include <string>
+#include <stack>
+#include <queue>
+#include <unordered_map>
+#include <vector>
+
+using namespace std;
+int tmp = 98094759387495;
+long long memorySize = 0;
+void calculate(unordered_map<string, float> &stck, string &eq,string &tmp_name)
+{
+	int tmpValue = 1, counter = 0, ans = 0, firstNum, secondNum;
+	string firstVar = "", secondVar = "";  //variables after and before the operation
+	vector<int> numAfterMultiplication; //bayen mn Esmo
+	vector<char> operations; // + or -
+
+	for (int i = 0; i < eq.size(); i++)
+	{
+
+		if (eq[i] == '*' && counter == 0) //if multiplication , we check on the variable before (*) and the variable after(*)
+		{
+			firstVar = "", secondVar = "";  //before(*) and after(*)
+
+			for (int j = i - 1; j >= 0; j--) //get the name of firstVar
+			{
+				if (eq[j] == '+' || eq[j] == '=' || eq[j] == '-' || eq[j] == '*')
+					break;
+				firstVar += eq[j];
+			}
+			reverse(firstVar.begin(), firstVar.end());
+
+			for (int j = i + 1; j < eq.size(); j++) //get the name of secondVar
+			{
+				if (eq[j] == '+' || eq[j] == '=' || eq[j] == '-' || eq[j] == '*')
+					break;
+				secondVar += eq[j];
+			}
+
+			counter++;
+
+			if (isdigit(firstVar[0]) && isdigit(secondVar[0]))
+			{
+				firstNum = atoi(firstVar.c_str());
+				secondNum = atoi(secondVar.c_str());
+				tmpValue = firstNum*secondNum;
+			}
+			else if (isdigit(firstVar[0]))
+			{
+				firstNum = atoi(firstVar.c_str());
+				tmpValue = firstNum*stck[secondVar];
+			}
+			else if (isdigit(secondVar[0]))
+			{
+				secondNum = atoi(secondVar.c_str());
+				tmpValue = stck[firstVar] * secondNum;
+			}
+			else
+			{
+				tmpValue = stck[firstVar] * stck[secondVar];
+			}
+		}
+		else if (eq[i] == '*' && counter > 0)
+		{
+			secondVar = "";
+			for (int j = i + 1; j < eq.size(); j++)
+			{
+				if (eq[j] == '+' || eq[j] == '=' || eq[j] == '-' || eq[j] == '*')
+					break;
+				secondVar += eq[j];
+			}
+
+			if (isdigit(secondVar[0]))
+			{
+				secondNum = atoi(secondVar.c_str());
+				tmpValue *= secondNum;
+			}
+			else
+				tmpValue *= stck[secondVar];
+		}
+
+		else if (eq[i] == '+' || eq[i] == '-')
+		{
+			firstVar = "";
+			for (int j = i - 1; j >= 0; j--)
+			{
+				if (eq[j] == '+' || eq[j] == '=' || eq[j] == '-' || eq[j] == '*')
+					break;
+				firstVar += eq[j];
+			}
+			reverse(firstVar.begin(), firstVar.end());
+
+			if (tmpValue > 1)
+				numAfterMultiplication.push_back(tmpValue);
+			else
+			{
+				if (isdigit(firstVar[0]))
+				{
+					firstNum = atoi(firstVar.c_str());
+					tmpValue = firstNum;
+				}
+				else
+					tmpValue = stck[firstVar];
+				numAfterMultiplication.push_back(tmpValue);
+			}
+			operations.push_back(eq[i]);
+			counter = 0;
+			tmpValue = 1;
+
+			if (eq.find('-', i + 1) == -1 && eq.find('+', i + 1) == -1 && eq.find('*', i + 1) == -1)
+			{
+				secondVar = "";
+				for (int j = i + 1; j < eq.size(); j++)
+				{
+					secondVar += eq[j];
+				}
+				if (isdigit(secondVar[0]))
+				{
+					secondNum = atoi(secondVar.c_str());
+					tmpValue = secondNum;
+				}
+				else
+					tmpValue = stck[secondVar];
+				numAfterMultiplication.push_back(tmpValue);
+				tmpValue = 1;
+			}
+		}
+	}
+	//cout << numAfterMultiplication.size() << endl;
+	if (tmpValue > 1)
+		numAfterMultiplication.push_back(tmpValue);
+	if (numAfterMultiplication.size() == 1)
+		stck[tmp_name] = tmpValue;
+	
+	else if (numAfterMultiplication.size() == 0)
+	{
+		if (!isdigit(eq[0]))
+		{
+			stck[tmp_name] = stck[eq];
+		}
+		else
+		{
+			stck[tmp_name] = atoi(eq.c_str());
+		}
+	}
+	else
+	{
+		int j = 0;
+
+		if (operations[j] == '+')
+		{
+			ans = numAfterMultiplication[0] + numAfterMultiplication[1];
+		}
+		else
+			ans = numAfterMultiplication[0] - numAfterMultiplication[1];
+		j++;
+
+		for (int i = 2; i < numAfterMultiplication.size(); i++)
+		{
+			if (operations[j] == '+')
+				ans += numAfterMultiplication[i];
+			else
+				ans -= numAfterMultiplication[i];
+			j++;
+		}
+		//cout << eq << endl;
+		stck[tmp_name] = ans;
+		cout << tmp_name << " " << ans << endl;
+	}
+}
+void calculateFloat(unordered_map<string, float> &stck, string &eq, string &tmp_name)
+{
+	float tmpValue = 1, ans = 0, firstNum, secondNum;
+	int counter = 0;
+	string firstVar = "", secondVar = "";  //variables after and before the operation
+	vector<float> numAfterMultiplication; //bayen mn Esmo
+	vector<char> operations; // + or -
+	for (int i = 0; i < eq.size(); i++)
+	{
+		if (eq[i] == '*' && counter == 0) //if multiplication , we check on the variable before (*) and the variable after(*)
+		{
+			firstVar = "", secondVar = "";  //before(*) and after(*)
+
+			for (int j = i - 1; j >= 0; j--) //get the name of firstVar
+			{
+				if (eq[j] == '+' || eq[j] == '=' || eq[j] == '-' || eq[j] == '*')
+					break;
+				firstVar += eq[j];
+			}
+			reverse(firstVar.begin(), firstVar.end());
+
+			for (int j = i + 1; j < eq.size(); j++) //get the name of secondVar
+			{
+				if (eq[j] == '+' || eq[j] == '=' || eq[j] == '-' || eq[j] == '*')
+					break;
+				secondVar += eq[j];
+			}
+
+			counter++;
+
+			if (isdigit(firstVar[0]) && isdigit(secondVar[0]))
+			{
+				firstNum = atoi(firstVar.c_str());
+				secondNum = atoi(secondVar.c_str());
+				tmpValue = firstNum*secondNum;
+			}
+			else if (isdigit(firstVar[0]))
+			{
+				firstNum = atoi(firstVar.c_str());
+				tmpValue = firstNum*stck[secondVar];
+			}
+			else if (isdigit(secondVar[0]))
+			{
+				secondNum = atoi(secondVar.c_str());
+				tmpValue = stck[firstVar] * secondNum;
+			}
+			else
+			{
+				tmpValue = stck[firstVar] * stck[secondVar];
+			}
+		}
+		else if (eq[i] == '*' && counter > 0)
+		{
+			secondVar = "";
+			for (int j = i + 1; j < eq.size(); j++)
+			{
+				if (eq[j] == '+' || eq[j] == '=' || eq[j] == '-' || eq[j] == '*')
+					break;
+				secondVar += eq[j];
+			}
+
+			if (isdigit(secondVar[0]))
+			{
+				secondNum = atoi(secondVar.c_str());
+				tmpValue *= secondNum;
+			}
+			else
+				tmpValue *= stck[secondVar];
+		}
+
+		else if (eq[i] == '+' || eq[i] == '-')
+		{
+			firstVar = "";
+			for (int j = i - 1; j >= 0; j--)
+			{
+				if (eq[j] == '+' || eq[j] == '=' || eq[j] == '-' || eq[j] == '*')
+					break;
+				firstVar += eq[j];
+			}
+			reverse(firstVar.begin(), firstVar.end());
+
+			if (tmpValue > 1)
+				numAfterMultiplication.push_back(tmpValue);
+			else
+			{
+				if (isdigit(firstVar[0]))
+				{
+					firstNum = atoi(firstVar.c_str());
+					tmpValue = firstNum;
+				}
+				else
+					tmpValue = stck[firstVar];
+				numAfterMultiplication.push_back(tmpValue);
+			}
+			operations.push_back(eq[i]);
+			counter = 0;
+			tmpValue = 1;
+
+			if (eq.find('-', i + 1) == -1 && eq.find('+', i + 1) == -1 && eq.find('*', i + 1) == -1)
+			{
+				secondVar = "";
+				for (int j = i + 1; j < eq.size(); j++)
+				{
+					secondVar += eq[j];
+				}
+				if (isdigit(secondVar[0]))
+				{
+					secondNum = atoi(secondVar.c_str());
+					tmpValue = secondNum;
+				}
+				else
+					tmpValue = stck[secondVar];
+				numAfterMultiplication.push_back(tmpValue);
+				tmpValue = 1;
+			}
+		}
+	}
+	//cout << numAfterMultiplication.size() << endl;
+	if (tmpValue > 1)
+		numAfterMultiplication.push_back(tmpValue);
+	if (numAfterMultiplication.size() == 1)
+		stck[tmp_name] = tmpValue;
+
+	else if (numAfterMultiplication.size() == 0)
+	{
+		if (!isdigit(eq[0]))
+		{
+			stck[tmp_name] = stck[eq];
+		}
+		else
+		{
+			stck[tmp_name] = atoi(eq.c_str());
+		}
+	}
+	else
+	{
+		int j = 0;
+
+		if (operations[j] == '+')
+		{
+			ans = numAfterMultiplication[0] + numAfterMultiplication[1];
+		}
+		else
+			ans = numAfterMultiplication[0] - numAfterMultiplication[1];
+		j++;
+
+		for (int i = 2; i < numAfterMultiplication.size(); i++)
+		{
+			if (operations[j] == '+')
+				ans += numAfterMultiplication[i];
+			else
+				ans -= numAfterMultiplication[i];
+			j++;
+		}
+		//cout << eq << endl;
+		stck[tmp_name] = ans;
+		cout << tmp_name << " " << ans << endl;
+	}
+}
+
+void popFromQueue_Stack(queue<char> &name, string &tmp_name, stack<string> &deleteFromEnd, stack<string> &nameOfDeleted, unordered_map<string, float> &stck)
+{
+	while (!name.empty())
+	{
+		tmp_name += name.front();
+		name.pop();
+	}
+	deleteFromEnd.push(tmp_name);
+	nameOfDeleted.push(tmp_name);
+	stck[tmp_name] = tmp;
+	
+}
+void displayStack(stack<string> &deleteFromEnd, stack<string> &nameOfDeleted)
+{
+	//unordered_map<string, int>::iterator it;
+	//for (it = stck.begin(); it != stck.end(); it++)
+	//{
+	//	//deleteFromEnd.push(it->first);
+	//	//nameOfDeleted.push(it->first);
+	//	//cout << it->first<<" ";
+	//}
+	int h = 1;
+	while (!deleteFromEnd.empty())
+	{
+		cout << h << "  ";
+		cout << deleteFromEnd.top() << " deleted " << endl;
+		deleteFromEnd.pop();
+		h++;
+	}
+	while (!nameOfDeleted.empty())
+	{
+		cout << nameOfDeleted.top() << " , ";
+		nameOfDeleted.pop();
+	}
+	cout << "have been deleted from stack :) " << endl;
+}
+
+void main()
+{
+	/**/
+	unordered_map<string, float>stck;
+	unordered_map<string, vector<int> > pointers;
+	stack<string>deleteFromEnd;
+	stack<string>nameOfDeleted;
+	bool deleted=true;
+	while (true)
+	{
+		string s, eq = "";
+		getline(cin, s);
+		int  ast = 0;
+		if (s.substr(0, 3) == "int")
+		{
+			queue <char> name;
+			string tmp_name = "";
+			bool value = false;
+			int indx;
+
+			for (int i = 3; i<s.size(); i++)
+			{
+				if (s[i] == ' ')
+				{
+					continue;
+				}
+				if (s[i] == '*' && ast == 0)
+				{
+					indx = i;
+					ast = 2;
+					break;
+				}
+				if (s[i] == ';')
+				{
+					ast = 1;
+					if (value)
+					{
+						calculate(stck, eq, tmp_name);
+					}
+					else
+					{
+						tmp_name = "";
+						value = true;
+						popFromQueue_Stack(name, tmp_name, deleteFromEnd, nameOfDeleted, stck);
+					}
+				}
+				else if (s[i] == '=')
+				{
+					ast = 1;
+					tmp_name = "";
+					value = true;
+					popFromQueue_Stack(name, tmp_name, deleteFromEnd, nameOfDeleted, stck);
+
+				}
+				else if (s[i] == ',')
+				{
+					ast = 1;
+					if (value)
+					{
+						calculate(stck,eq,tmp_name);
+					}
+					else
+					{
+						tmp_name = "";
+						popFromQueue_Stack(name, tmp_name, deleteFromEnd, nameOfDeleted, stck);
+						
+					}
+					value = false;
+					eq = "";
+				}
+				else
+				{
+					ast = 1;
+					if (!value)
+					{
+						name.push(s[i]);
+					}
+					else
+					{
+						eq += s[i];
+					}
+				}
+				if (i == (s.size() - 1))
+				{
+					cout << " 4 byte has been stored in memory 'Stack' for ";
+					cout << "variable " << tmp_name << " = " << stck[tmp_name] << endl;
+					memorySize += 4;
+				}
+			}
+			
+			/* the code of the ptr*/
+			if (ast == 2)
+			{
+				tmp_name = "";
+				value = false;
+				for (int i = indx + 1; i<s.size(); i++)
+				{
+					if (!value && s[i] != '=' && s[i] != ' ')
+					{
+						tmp_name += s[i];
+					}
+					else if (s[i] == '=')
+					{
+						value = true;
+						indx = ((s).find("new int"));
+						int size = 1;
+						if (indx != -1 && indx + 7 < s.size())
+						{
+							string sizeS = s.substr(indx + 8, s.size() - 1);
+							size = atoi(sizeS.c_str());
+							vector < int > tmpv(size);
+							pointers[tmp_name] = tmpv;
+							
+						}
+						else if (indx != -1)
+						{
+							vector < int > tmpv(size);
+							pointers[tmp_name] = tmpv;
+						}
+						else if (indx == -1)
+						{
+							pointers[tmp_name].push_back(stck[s.substr(indx + 7, s.size() - 1)]);
+						}
+						cout << " 4 byte has been stored in memory 'Heap' for ";
+						cout << "pointer " << tmp_name << " = " /*<< pointers[tmp_name] */<< endl;
+						memorySize += 4;
+
+						break;
+					}
+				}
+			}
+		}
+		else if (s.substr(0,5) == "float")
+		{
+			queue <char> name;
+			string tmp_name = "";
+			bool value = false;
+			int indx;
+
+			for (int i = 5; i<s.size(); i++)
+			{
+				if (s[i] == ' ')
+				{
+					continue;
+				}
+				if (s[i] == '*' && ast == 0)
+				{
+					indx = i;
+					ast = 2;
+					break;
+				}
+				if (s[i] == ';')
+				{
+					ast = 1;
+					if (value)
+					{
+						calculateFloat(stck, eq, tmp_name);
+					}
+					else
+					{
+						tmp_name = "";
+						value = true;
+						popFromQueue_Stack(name, tmp_name, deleteFromEnd, nameOfDeleted, stck);
+					}
+				}
+				else if (s[i] == '=')
+				{
+					ast = 1;
+					tmp_name = "";
+					value = true;
+					popFromQueue_Stack(name, tmp_name, deleteFromEnd, nameOfDeleted, stck);
+
+				}
+				else if (s[i] == ',')
+				{
+					ast = 1;
+					if (value)
+					{
+						calculateFloat(stck, eq, tmp_name);
+					}
+					else
+					{
+						tmp_name = "";
+						popFromQueue_Stack(name, tmp_name, deleteFromEnd, nameOfDeleted, stck);
+
+					}
+					value = false;
+					eq = "";
+				}
+				else
+				{
+					ast = 1;
+					if (!value)
+					{
+						name.push(s[i]);
+					}
+					else
+					{
+						eq += s[i];
+					}
+				}
+				if (i == (s.size() - 1))
+				{
+					cout << " 4 byte has been stored in memory 'Stack' for ";
+					cout << "variable " << tmp_name << " = " << stck[tmp_name] << endl;
+					memorySize += 4 ;
+				}
+			}
+
+			/* the code of the ptr*/
+			if (ast == 2)
+			{
+				tmp_name = "";
+				value = false;
+				for (int i = indx + 1; i<s.size(); i++)
+				{
+					if (!value && s[i] != '=' && s[i] != ' ')
+					{
+						tmp_name += s[i];
+					}
+					else if (s[i] == '=')
+					{
+						value = true;
+						indx = ((s).find("new int"));
+						int size = 1;
+						if (indx != -1 && indx + 7 < s.size())
+						{
+							string sizeS = s.substr(indx + 8, s.size() - 1);
+							size = atoi(sizeS.c_str());
+							vector < int > tmpv(size);
+							pointers[tmp_name] = tmpv;
+
+						}
+						else if (indx != -1)
+						{
+							vector < int > tmpv(size);
+							pointers[tmp_name] = tmpv;
+						}
+						else if (indx == -1)
+						{
+							pointers[tmp_name].push_back(stck[s.substr(indx + 7, s.size() - 1)]);
+						}
+						cout << " 4 byte has been stored in memory 'Heap' for ";
+						cout << "pointer " << tmp_name << " = " /*<< pointers[tmp_name] */ << endl;
+						memorySize += 4;
+						break;
+					}
+				}
+			}
+		}
+		else if (s.substr(0, 6) == "delete")
+		{
+			//if (pointers.find() != pointers.end())
+				deleted = false;
+				string tobedeleted = "";
+				queue <char> variableinmap;
+				for (int i = 6; i < s.size(); i++)
+				{
+					if (s[i] == ' ' || s[i] == '[' || s[i] == ']')
+					{
+						continue;
+					}
+					else if (s[i] == ';')
+					{
+						break;
+					}
+					else
+					{
+						tobedeleted += s[i];
+					}
+					if (pointers.find(tobedeleted) != pointers.end())
+					{
+						pointers[tobedeleted].clear();
+						cout << "cleared" << endl;
+					}
+				}
+		}
+		else
+		{
+			string tmp_name = "";
+			bool value = false;
+			int indx;
+			for (int i = 0; i<s.size(); i++)
+			{
+				if (!value && s[i] != '=')
+				{
+					tmp_name += s[i];
+				}
+				else if (s[i] == '=')
+				{
+					value = true;
+					indx = ((s).find("new int"));
+					int size = 1;
+					if (indx != -1 && indx + 7 < s.size())
+					{
+						string num = s.substr(indx + 8, s.size() - 2);
+						size = atoi(num.c_str());
+						vector < int > tmpv(size);
+						pointers[tmp_name] = tmpv;
+						cout << tmp_name << " is now pointing at " << size << " elements " << endl;
+					}
+					else if (indx != -1)
+					{
+						vector < int > tmpv(size);
+						pointers[tmp_name] = tmpv;
+						//cout << tmp_name << " is now pointing at " << size << " elements " << endl;
+					}
+					else if (indx == -1)
+					{
+						pointers[tmp_name].push_back(stck[s.substr(indx + 7, s.size() - 1)]);
+					}
+				}
+			}
+		}
+		if (s == "return 0")
+		{
+			displayStack(deleteFromEnd, nameOfDeleted);
+			cout << "Memory Size = " << memorySize<<endl;
+			break;
+		}
+	}
+}
